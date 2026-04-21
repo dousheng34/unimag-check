@@ -271,6 +271,20 @@
   .reveal{ opacity:0; transform:translateY(24px); transition:opacity .8s ease, transform .8s ease; }
   .reveal.on{ opacity:1; transform:translateY(0); }
 
+
+  /* ============ QR DISPLAY ============ */
+  .qr-box{ display:flex; flex-direction:column; align-items:center;
+    gap:14px; margin-bottom:36px; padding:24px; background:#fff;
+    border-radius:4px; max-width:200px; margin-left:auto; margin-right:auto;
+    box-shadow:0 0 40px rgba(201,169,97,0.15); }
+  .qr-box img{ width:160px; height:160px; display:block; image-rendering:pixelated; }
+  .qr-caption{ font-size:10px; letter-spacing:3px; color:#0a0a0a;
+    text-transform:uppercase; font-weight:500; }
+  .qr-or{ display:flex; align-items:center; gap:14px;
+    color:var(--text-mute); font-size:10px; letter-spacing:3px;
+    text-transform:uppercase; margin:30px 0 24px; }
+  .qr-or::before,.qr-or::after{ content:''; flex:1; height:1px; background:var(--line-soft); }
+
   /* ============ CHECK / VERIFY FORM ============ */
   .check-section{ padding:110px 0; background:var(--bg-2);
     border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft); }
@@ -372,9 +386,17 @@
         <div class="check-card-label">Проверка подлинности</div>
         <h3>Введите номер флакона</h3>
         <p class="desc">
-          Отсканируйте QR-код с упаковки или введите номер с сертификата вручную.
-          Номер указан на флаконе и сертификате — от 1 до 500.
+          Отсканируйте QR-код ниже камерой смартфона, или введите номер
+          флакона вручную. Номер указан на сертификате и на самом флаконе.
         </p>
+
+        <div class="qr-box">
+          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA1wAAANcAQAAAABjnpNpAAAFEElEQVR4nO3dS5LcIAyAYSk1e3yD3P92cAJlYbDEw53xJJNMMb8WbreN/VWxomQBavLPovz4d5YIGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBjY/8fEzsiLG34tmXnj+tcPrcmLV5039u1GMDAwMDAwsI9jFiLHNvFvURUpqn6tnhVV1eP1q75FN4KBgYGBgYE9xoqe4VfMsojqUYcVfuZN6rVcX3D7qhH77AADAwMDAwP7ytjbi3spzplRSbmdiYhdB78mV5Ob2LcbwcDAwMDAwP4u5kmOmuloVSD1u0tRjdUi+Y+wvxtgYGBgYGBgXxnr8iCpXyykHC3TUY7z16RoODNJFlIgniCZXnXGvt0IBgYGBgYG9jDCGESXDdpAxPqBiIW7Ra/D8epVG3cjGBgYGBgY2MNoY5Bl3qLeUBEJh3qtuzE8cRP7diMYGBgYGBjY01hNo40FICJSF//I9Wz9WFsfZHpCWB8EDAwMDAwMbIqxHkTPwo6W6fCvLSLixR75/NWrCqRG+3BTEyRjRmTfbgQDAwMDAwN7Gp7OiNeyyLQ6qky5kfX78nVmfdKEPAgYGBgYGBjYiPkkWz90E2/9xmrAUg/2ctTyDboRDAwMDAwM7L0x5EG8xGO6ZnEMclsFUp/IC4M8CBgYGBgYGNgVcdCRRYZhxTTeGNqtHltVpzIGAQMDAwMDA+tinptbYpFpXHasaGgXFwmZH6urmqUsGtvt241gYGBgYGBgT8P6iPUgMi3TPjWWWAoSz5YfePbtRjAwMDAwMLCnEb+23Nyt5+lqlxaFItJPicnTDBnGIGBgYGBgYGAe/fogubvni7OHJjY2Vkl53CUmLjASYt9uBAMDAwMDA3saq5pUvzFNdUn95BiPfL3Rm+TB2LcbwcDAwMDAwB5GqEn1+tNpt1y5UhutwlTPPEgrPZXwmAd5EDAwMDAwMLDfYzVvUfQMv6F61BurN5jl2qQeVHX1Fvkm3QgGBgYGBgb2nmh5kHKIXckQCZvGyJUbaZvBeGj/hFyNp41kzti3G8HAwMDAwMAeRqhJ7Tafi5vUdYuEHO3G0ORcPSSHa3INRFgfBAwMDAwMDGyM1fogqzLTqSY1Xy/I0yIhN6ut7tuNYGBgYGBgYE9jMcVlntEyXMsica32YRAjcrO0GWMQMDAwMDAwsCt8gLHeANf/psWmuP5sd7baPoYxCBgYGBgYGNg95nNgzMzM57uISB1g+HyXeiOZ1Ykw7dnavNQZMnfYpwYYGBgYGBjYV8aWuQzPedRIU5PbzEl8NlEPAgYGBgYGBraOt+F/XWB9NelFRHwOb2ws6zk1Mm6tu3E3goGBgYGBgT2NuR41FqFOtR9jiYfIzRyYqTKEPAgYGBgYGBhYiDiYmG/Ev7mvTk196alM32f4FgMGBgYGBgZ2H1M9yPA3XyMKfyIvns1xmEIeBAwMDAwMDOx1dPUg3SZ1bUO6WNFhUo62Qvu5nHtdCXU4DO9rsW83goGBgYGBgT2MsSZ1iqJtI5mURfrNc23cRvd84mhjFRFqUsHAwMDAwMA+hqW6+EfdHldVRVJdOEREpo1yVX+aqf68SkZYHwQMDAwMDAxsji4P0n13GXIe7dNMPv9YmILbpUCGeb1d7NuNYGBgYGBgYA/jZt9cjzbA8IVDrC8UiauHeKHI8n37diMYGBgYGBjYw9A5W/FpUfbtRjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwsGX8Atu86DTM38WNAAAAAElFTkSuQmCC" alt="UNIMAG QR — проверка подлинности" loading="lazy">
+          <div class="qr-caption">UNIMAG · Verify</div>
+        </div>
+
+        <div class="qr-or">или введите номер вручную</div>
+
         <form class="check-form" id="checkForm" onsubmit="return runCheck(event)">
           <div class="row">
             <input type="text" id="checkInput" inputmode="numeric" pattern="[0-9]*"
