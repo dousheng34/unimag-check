@@ -226,6 +226,39 @@
   .tap-hint{
     font-size:10px; letter-spacing:4px; text-transform:uppercase;
     color:var(--text-mute); }
+  .tap-splash *{ pointer-events:none; }
+  .tap-splash{ pointer-events:all; }
+  .tap-btn:hover{ border-color:var(--gold); box-shadow:0 0 24px rgba(201,169,97,0.2); }
+  .tap-btn:hover svg{ stroke:var(--gold-soft); }
+
+  /* ── CODE INPUT FORM ── */
+  .code-stage{ flex:1; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding:0 32px; opacity:0; transform:translateY(16px);
+    transition:opacity .5s ease, transform .5s ease; }
+  .code-stage.visible{ opacity:1; transform:translateY(0); }
+  .code-title{ font-family:'Cormorant Garamond',serif; font-size:26px;
+    font-weight:400; text-align:center; margin-bottom:8px; letter-spacing:.5px; }
+  .code-sub{ font-size:12px; color:var(--text-dim); text-align:center;
+    letter-spacing:1px; margin-bottom:36px; line-height:1.7; }
+  .code-input-wrap{ position:relative; width:100%; max-width:260px; margin-bottom:10px; }
+  .code-input{ width:100%; padding:18px 16px; text-align:center;
+    background:rgba(255,255,255,0.04); border:1px solid var(--gold-dim);
+    border-radius:2px; color:var(--text); font-size:22px;
+    font-family:'Cormorant Garamond',serif; font-weight:500;
+    letter-spacing:8px; outline:none; transition:border-color .3s; }
+  .code-input:focus{ border-color:var(--gold);
+    box-shadow:0 0 20px rgba(201,169,97,0.12); }
+  .code-input::placeholder{ color:var(--text-mute); letter-spacing:4px; font-size:16px; }
+  .code-err{ font-size:11px; letter-spacing:2px; color:#e05555;
+    text-align:center; min-height:18px; margin-bottom:20px; }
+  .code-btn{ width:100%; max-width:260px; padding:16px;
+    background:var(--gold); color:#0a0a0a; border:none; border-radius:2px;
+    font-size:10px; letter-spacing:4px; text-transform:uppercase;
+    font-family:'Inter',sans-serif; font-weight:600;
+    cursor:pointer; transition:background .25s, transform .15s; }
+  .code-btn:hover{ background:var(--gold-soft); transform:translateY(-1px); }
+  .code-btn:active{ transform:translateY(0); }
 
   .loader-stage{ flex:1; display:flex; flex-direction:column;
     align-items:center; justify-content:center; gap:0;
@@ -692,6 +725,23 @@
 
   </div>
 
+  <div class="code-stage" id="codeStage">
+    <div class="code-title">Введите код флакона</div>
+    <p class="code-sub">Код нанесён на сертификате и на флаконе<br>Пример: <strong style="color:var(--gold);letter-spacing:3px">0042</strong></p>
+    <form onsubmit="runCodeCheck(event)" autocomplete="off" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:0">
+      <div class="code-input-wrap">
+        <input id="codeInput" class="code-input" type="tel"
+               inputmode="numeric" pattern="[0-9]*"
+               placeholder="0000" maxlength="4" autofocus>
+      </div>
+      <div class="code-err" id="codeErr"></div>
+      <button type="submit" class="code-btn">Проверить подлинность</button>
+    </form>
+    <div style="margin-top:28px">
+      <a href="./" style="font-size:10px;letter-spacing:3px;color:var(--text-mute);text-transform:uppercase">← На главную</a>
+    </div>
+  </div>
+
   <div class="result-stage" id="result">
     <div class="check-wrap">
       <svg class="check-svg" viewBox="0 0 52 52">
@@ -783,28 +833,26 @@ if (idKey) {
   landing.style.display = 'none';
   setTimeout(showResult, 1800);
 } else if (scanMode) {
-  // QR-код отсканирован → показываем сплэш, тап → разблокируем аудио + анимация
   verify.style.display  = 'flex';
   landing.style.display = 'none';
-  // Tap-to-start logic
-  const splash = document.getElementById('tapSplash');
-  if (splash) {
-    splash.addEventListener('click', function onTap() {
-      splash.removeEventListener('click', onTap);
-      // Resume AudioContext (iOS requires direct user gesture)
-      if (_ac && _ac.state === 'suspended') _ac.resume();
-      // Hide splash, show brand + loader
-      splash.classList.add('hide');
-      setTimeout(() => {
-        splash.style.display = 'none';
-        document.getElementById('vBrand').style.display = '';
-        document.getElementById('loader').style.display = '';
-        showScanForm();
-      }, 500);
-    }, { once: true });
-  } else {
-    showScanForm();
+
+  const splash    = document.getElementById('tapSplash');
+  const codeStage = document.getElementById('codeStage');
+  const vBrand    = document.getElementById('vBrand');
+
+  function onSplashActivate() {
+    if (_ac && _ac.state === 'suspended') _ac.resume();
+    _vib(12);
+    splash.classList.add('hide');
+    setTimeout(() => {
+      splash.style.display = 'none';
+      vBrand.style.display = '';
+      codeStage.classList.add('visible');
+      setTimeout(() => { const inp = document.getElementById('codeInput'); if(inp) inp.focus(); }, 200);
+    }, 500);
   }
+  splash.addEventListener('click', onSplashActivate, { once:true });
+  splash.addEventListener('touchstart', function(e){ e.preventDefault(); onSplashActivate(); }, { once:true, passive:false });
 } else {
   landing.style.display = 'block';
   verify.style.display  = 'none';
@@ -943,13 +991,32 @@ function _vib(pattern) {
   try { if (navigator.vibrate) navigator.vibrate(pattern); } catch(e) {}
 }
 
-// ---- QR Scan mode: pro animated check → random flacon result ----
-function showScanForm() {
-  const loader = document.getElementById('loader');
-  const result = document.getElementById('result');
-  const bar    = document.getElementById('scanProgressBar');
+// ---- QR scan: run pro verification for a specific flacon ----
+function showScanForm(targetKey) {
+  const loader    = document.getElementById('loader');
+  const codeStage = document.getElementById('codeStage');
+  const result    = document.getElementById('result');
+  const bar       = document.getElementById('scanProgressBar');
+  const vBrand    = document.getElementById('vBrand');
 
-  // Steps config: [id, activateAt(ms), doneAt(ms), progress%]
+  // Hide code form, show loader
+  codeStage.classList.remove('visible');
+  setTimeout(() => { codeStage.style.display = 'none'; }, 400);
+  if (vBrand) vBrand.style.display = '';
+  loader.style.display  = '';
+  loader.style.opacity  = '1';
+  loader.style.transform = '';
+
+  // Reset step states
+  ['vs0','vs1','vs2','vs3','vs4'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('active','done');
+    const icon = el.querySelector('.v-step-icon');
+    if (icon) icon.innerHTML = el.getAttribute('data-num') || icon.innerHTML;
+  });
+  if (bar) bar.style.width = '0%';
+
   const STEPS = [
     { id:'vs0', at:  80, done: 700, pct:  8 },
     { id:'vs1', at: 700, done:1500, pct: 30 },
@@ -958,79 +1025,74 @@ function showScanForm() {
     { id:'vs4', at:3200, done:3900, pct: 96 },
   ];
 
-  // Activate steps with checkmark icons
   STEPS.forEach(({ id, at, done, pct }) => {
     setTimeout(() => {
       const el = document.getElementById(id);
       if (el) {
-        // Deactivate previous
-        STEPS.forEach(s => {
-          const prev = document.getElementById(s.id);
-          if (prev && prev !== el) prev.classList.remove('active');
-        });
+        STEPS.forEach(s => { const p = document.getElementById(s.id); if(p && p!==el) p.classList.remove('active'); });
         el.classList.add('active');
         if (bar) bar.style.width = pct + '%';
-        _sndActivate();
-        _vib(18);
+        _sndActivate(); _vib(18);
       }
     }, at);
-
     setTimeout(() => {
       const el = document.getElementById(id);
       if (el) {
-        el.classList.remove('active');
-        el.classList.add('done');
-        // Replace number with checkmark
+        el.classList.remove('active'); el.classList.add('done');
         const icon = el.querySelector('.v-step-icon');
         if (icon) icon.innerHTML = '<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,8 6,12 14,4"/></svg>';
-        _sndDone();
-        _vib([22, 30, 14]);
+        _sndDone(); _vib([22,30,14]);
       }
     }, done);
   });
 
-  // Final: complete bar and show result
-  setTimeout(() => {
-    if (bar) bar.style.width = '100%';
-    _sndFinal();
-    _vib([30, 40, 50, 40, 80]);
-  }, 3900);
+  setTimeout(() => { if (bar) bar.style.width = '100%'; _sndFinal(); _vib([30,40,50,40,80]); }, 3900);
 
   setTimeout(() => {
-    // Pick random flacon
-    const keys    = Object.keys(DATABASE);
-    const randKey = keys[Math.floor(Math.random() * keys.length)];
-    const record  = DATABASE[randKey];
-
-    loader.style.opacity = '0';
+    const record = DATABASE[String(targetKey)];
+    loader.style.opacity   = '0';
     loader.style.transform = 'scale(0.97)';
     loader.style.transition = 'opacity .5s ease, transform .5s ease';
-
     setTimeout(() => {
       loader.classList.add('hidden');
       result.classList.add('visible');
-
-      document.getElementById('flaconNum').textContent = '№ ' + padNum(randKey);
+      document.getElementById('flaconNum').textContent = '№ ' + padNum(targetKey);
       document.getElementById('flaconOf').textContent  = 'из ' + (record.total || 500) + ' выпущенных';
       document.getElementById('fName').textContent     = record.name   || '—';
       document.getElementById('fNotes').textContent    = record.notes  || '—';
       document.getElementById('fVol').textContent      = record.volume || '—';
       document.getElementById('fDate').textContent     = record.date   || '—';
-
-      const key = 'unimag_checks_' + randKey;
+      const key = 'unimag_checks_' + targetKey;
       const n   = parseInt(localStorage.getItem(key) || '0', 10) + 1;
       localStorage.setItem(key, n);
-      document.getElementById('fChecks').textContent =
-        n === 1 ? '1-я проверка' : n + '-я проверка';
-
+      document.getElementById('fChecks').textContent = n === 1 ? '1-я проверка' : n + '-я проверка';
       document.getElementById('resultLabel').textContent = 'Проверка пройдена';
-      document.getElementById('resultTitle').textContent =
-        'Вы держите в руках флакон №' + padNum(randKey);
-      document.getElementById('resultSub').textContent =
-        'Этот экземпляр из лимитированной коллекции Unimag. Подлинность подтверждена.';
-      document.getElementById('infoCard').style.display = '';
+      document.getElementById('resultTitle').textContent = 'Вы держите в руках флакон №' + padNum(targetKey);
+      document.getElementById('resultSub').textContent   = 'Этот экземпляр из лимитированной коллекции Unimag. Подлинность подтверждена.';
+      document.getElementById('infoCard').style.display  = '';
     }, 500);
   }, 4200);
+}
+
+// ---- runCodeCheck: validate input then run verification ----
+function runCodeCheck(e) {
+  e.preventDefault();
+  const input = document.getElementById('codeInput');
+  const err   = document.getElementById('codeErr');
+  const raw   = (input.value || '').trim().replace(/^0+/, '') || '0';
+  const n     = parseInt(raw, 10);
+  if (!raw || isNaN(n) || n < 1 || n > 500) {
+    err.textContent = 'Введите код от 0001 до 0500';
+    input.focus(); return false;
+  }
+  if (!DATABASE[String(n)]) {
+    err.textContent = 'Код ' + String(n).padStart(4,'0') + ' не найден в базе';
+    input.focus(); return false;
+  }
+  err.textContent = '';
+  _vib(25);
+  showScanForm(n);
+  return false;
 }
 
 // ---- Manual code check form ----
