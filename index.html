@@ -226,10 +226,8 @@
   .tap-hint{
     font-size:10px; letter-spacing:4px; text-transform:uppercase;
     color:var(--text-mute); }
-  .tap-splash *{ pointer-events:none; }
-  .tap-splash{ pointer-events:all; }
-  .tap-btn:hover{ border-color:var(--gold); box-shadow:0 0 24px rgba(201,169,97,0.2); }
-  .tap-btn:hover svg{ stroke:var(--gold-soft); }
+  .tap-splash{ background:var(--bg); border:none; width:100%; height:100%; cursor:pointer; }
+  .tap-splash:hover .tap-btn{ border-color:var(--gold); box-shadow:0 0 24px rgba(201,169,97,0.2); }
 
   /* ── CODE INPUT FORM ── */
   .code-stage{ flex:1; display:flex; flex-direction:column;
@@ -666,15 +664,18 @@
 
 <!-- ========== VERIFY VIEW ========== -->
 <div id="verify" class="verify-wrap" style="display:none">
-  <!-- Tap-to-start splash (iOS audio unlock) -->
-  <div class="tap-splash" id="tapSplash">
+  <!-- Tap-to-start splash (iOS audio unlock + PC click) -->
+  <button class="tap-splash" id="tapSplash" type="button" onclick="activateSplash()">
     <div class="tap-logo">UNIMAG</div>
     <div class="tap-tag">Limited Collection</div>
     <div class="tap-btn">
-      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 1 0 20A10 10 0 0 1 12 2zm0 6v4l3 3"/><circle cx="12" cy="12" r="1" fill="var(--gold)" stroke="none"/><path d="M12 8v4l2.5 2.5"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12,8 12,12 15,14"/>
+      </svg>
     </div>
     <div class="tap-hint">Нажмите для проверки</div>
-  </div>
+  </button>
 
   <div class="v-brand" id="vBrand" style="display:none">
     <div class="v-brand-logo">UNIMAG</div>
@@ -835,24 +836,7 @@ if (idKey) {
 } else if (scanMode) {
   verify.style.display  = 'flex';
   landing.style.display = 'none';
-
-  const splash    = document.getElementById('tapSplash');
-  const codeStage = document.getElementById('codeStage');
-  const vBrand    = document.getElementById('vBrand');
-
-  function onSplashActivate() {
-    if (_ac && _ac.state === 'suspended') _ac.resume();
-    _vib(12);
-    splash.classList.add('hide');
-    setTimeout(() => {
-      splash.style.display = 'none';
-      vBrand.style.display = '';
-      codeStage.classList.add('visible');
-      setTimeout(() => { const inp = document.getElementById('codeInput'); if(inp) inp.focus(); }, 200);
-    }, 500);
-  }
-  splash.addEventListener('click', onSplashActivate, { once:true });
-  splash.addEventListener('touchstart', function(e){ e.preventDefault(); onSplashActivate(); }, { once:true, passive:false });
+  // activateSplash() defined globally below
 } else {
   landing.style.display = 'block';
   verify.style.display  = 'none';
@@ -989,6 +973,29 @@ document.addEventListener('click',      _unlockAudio);
 // ── Vibration helper (Vibration API, safe on all devices) ──
 function _vib(pattern) {
   try { if (navigator.vibrate) navigator.vibrate(pattern); } catch(e) {}
+}
+
+// ---- Splash activation (global, called from onclick) ----
+function activateSplash() {
+  const splash    = document.getElementById('tapSplash');
+  const codeStage = document.getElementById('codeStage');
+  const vBrand    = document.getElementById('vBrand');
+  if (!splash || splash.dataset.activated) return;
+  splash.dataset.activated = '1';
+
+  // Resume AudioContext — must be inside direct user gesture
+  if (_ac && _ac.state === 'suspended') _ac.resume();
+  _vib(12);
+
+  splash.classList.add('hide');
+  setTimeout(() => {
+    splash.style.display = 'none';
+    if (vBrand) vBrand.style.display = '';
+    if (codeStage) {
+      codeStage.classList.add('visible');
+      setTimeout(() => { const inp = document.getElementById('codeInput'); if(inp) inp.focus(); }, 200);
+    }
+  }, 450);
 }
 
 // ---- QR scan: run pro verification for a specific flacon ----
