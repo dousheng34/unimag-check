@@ -870,6 +870,11 @@ function _unlockAudio() {
 document.addEventListener('touchstart', _unlockAudio, { passive:true });
 document.addEventListener('click',      _unlockAudio);
 
+// ── Vibration helper (Vibration API, safe on all devices) ──
+function _vib(pattern) {
+  try { if (navigator.vibrate) navigator.vibrate(pattern); } catch(e) {}
+}
+
 // ---- QR Scan mode: pro animated check → random flacon result ----
 function showScanForm() {
   const loader = document.getElementById('loader');
@@ -898,6 +903,7 @@ function showScanForm() {
         el.classList.add('active');
         if (bar) bar.style.width = pct + '%';
         _sndActivate();
+        _vib(18);
       }
     }, at);
 
@@ -910,6 +916,7 @@ function showScanForm() {
         const icon = el.querySelector('.v-step-icon');
         if (icon) icon.innerHTML = '<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,8 6,12 14,4"/></svg>';
         _sndDone();
+        _vib([22, 30, 14]);
       }
     }, done);
   });
@@ -918,6 +925,7 @@ function showScanForm() {
   setTimeout(() => {
     if (bar) bar.style.width = '100%';
     _sndFinal();
+    _vib([30, 40, 50, 40, 80]);
   }, 3900);
 
   setTimeout(() => {
