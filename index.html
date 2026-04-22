@@ -780,8 +780,10 @@
       <div class="info-row"><span class="k">Проверок</span><span class="v" id="fChecks">—</span></div>
     </div>
 
-    <div class="verify-actions">
-      <a href="./" class="btn btn-ghost" style="text-align:center">На главную</a>
+    <div class="verify-actions" style="flex-direction:column;gap:12px;width:100%;max-width:440px">
+      <a href="./" class="btn btn-ghost" style="text-align:center;display:block;width:100%;box-sizing:border-box">
+        ← На главную
+      </a>
     </div>
     <div class="link-row">Остались вопросы? <a href="mailto:info@unimag.kz">info@unimag.kz</a></div>
   </div>
@@ -842,12 +844,15 @@ const verify  = document.getElementById('verify');
 
 if (idKey) {
   document.body.classList.add('verify-mode');
-  document.body.classList.add('verify-mode');
   verify.style.display  = 'flex';
   landing.style.display = 'none';
+  // Hide splash immediately — not needed for direct ?id= links
+  const _sp = document.getElementById('tapSplash');
+  if (_sp) _sp.style.display = 'none';
+  document.getElementById('vBrand').style.display = '';
+  document.getElementById('loader').style.display = '';
   setTimeout(showResult, 1800);
 } else if (scanMode) {
-  document.body.classList.add('verify-mode');
   document.body.classList.add('verify-mode');
   verify.style.display  = 'flex';
   landing.style.display = 'none';
