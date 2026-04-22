@@ -20,6 +20,12 @@
     font-family:'Inter',sans-serif; min-height:100vh;
     overflow-x:hidden; -webkit-font-smoothing:antialiased;
     scroll-behavior:smooth; }
+  body.verify-mode{ overflow:hidden; }
+  body.verify-mode .nav,
+  body.verify-mode footer{ display:none !important; }
+  body.verify-mode{ overflow:hidden; }
+  body.verify-mode .nav,
+  body.verify-mode footer{ display:none !important; }
   a{ color:inherit; text-decoration:none; }
   img{ max-width:100%; display:block; }
 
@@ -176,9 +182,11 @@
     font-size:11px; color:var(--text-mute); letter-spacing:1.5px; text-transform:uppercase; }
 
   /* ============ VERIFY PAGE ============ */
-  .verify-wrap{ position:relative; z-index:1; max-width:560px; margin:0 auto;
-    padding:48px 28px 60px; min-height:calc(100vh - 60px);
-    display:flex; flex-direction:column; }
+  .verify-wrap{ position:fixed; inset:0; z-index:100;
+    display:none; flex-direction:column;
+    align-items:center; justify-content:flex-start;
+    padding:60px 20px 40px;
+    background:var(--bg); overflow-y:auto; }
 
   .v-brand{ text-align:center; margin-bottom:72px; }
   .v-brand-logo{ font-family:'Cormorant Garamond',serif; font-size:30px;
@@ -226,7 +234,11 @@
   .tap-hint{
     font-size:10px; letter-spacing:4px; text-transform:uppercase;
     color:var(--text-mute); }
-  .tap-splash{ background:var(--bg); border:none; width:100%; height:100%; cursor:pointer; }
+  .tap-splash{ position:absolute; inset:0; z-index:10;
+    background:var(--bg); border:none; cursor:pointer;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    transition:opacity .45s ease; }
   .tap-splash:hover .tap-btn{ border-color:var(--gold); box-shadow:0 0 24px rgba(201,169,97,0.2); }
 
   /* ── CODE INPUT FORM ── */
@@ -829,11 +841,14 @@ const landing = document.getElementById('landing');
 const verify  = document.getElementById('verify');
 
 if (idKey) {
-  // Конкретный флакон — показываем страницу проверки
+  document.body.classList.add('verify-mode');
+  document.body.classList.add('verify-mode');
   verify.style.display  = 'flex';
   landing.style.display = 'none';
   setTimeout(showResult, 1800);
 } else if (scanMode) {
+  document.body.classList.add('verify-mode');
+  document.body.classList.add('verify-mode');
   verify.style.display  = 'flex';
   landing.style.display = 'none';
   // activateSplash() defined globally below
