@@ -186,17 +186,79 @@
   .v-brand-tag{ font-size:10px; letter-spacing:4px; color:var(--text-dim);
     margin-top:6px; text-transform:uppercase; }
 
+  /* ── LOADER STAGE ── */
   .loader-stage{ flex:1; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; transition:opacity .6s ease; }
+    align-items:center; justify-content:center; gap:0;
+    transition:opacity .7s ease; padding:0 24px; }
   .loader-stage.hidden{ opacity:0; pointer-events:none; position:absolute; }
-  .spinner-box{ width:90px; height:90px; position:relative; margin-bottom:36px; }
-  .spinner-ring{ position:absolute; inset:0; border:1px solid rgba(201,169,97,0.15);
-    border-top-color:var(--gold); border-radius:50%; animation:spin 1.2s linear infinite; }
-  .spinner-ring:nth-child(2){ inset:12px; animation-duration:1.8s;
-    animation-direction:reverse; border-top-color:rgba(201,169,97,0.4); }
+
+  /* Scan frame */
+  .scan-frame{ width:110px; height:110px; position:relative; margin-bottom:40px; flex-shrink:0; }
+  .scan-frame-corner{ position:absolute; width:22px; height:22px; }
+  .scan-frame-corner::before,.scan-frame-corner::after{
+    content:''; position:absolute; background:var(--gold); border-radius:1px; }
+  .scan-frame-corner::before{ width:100%; height:1.5px; top:0; left:0; }
+  .scan-frame-corner::after{ width:1.5px; height:100%; top:0; left:0; }
+  .scan-frame-corner.tr{ top:0; right:0; transform:rotate(90deg); }
+  .scan-frame-corner.bl{ bottom:0; left:0; transform:rotate(-90deg); }
+  .scan-frame-corner.br{ bottom:0; right:0; transform:rotate(180deg); }
+  .scan-frame-line{
+    position:absolute; left:8px; right:8px; height:1.5px;
+    background:linear-gradient(90deg, transparent, var(--gold), var(--gold-soft), var(--gold), transparent);
+    box-shadow:0 0 10px rgba(201,169,97,0.7), 0 0 24px rgba(201,169,97,0.3);
+    animation:scanline 2s ease-in-out infinite;
+    top:8px; border-radius:2px; }
+  @keyframes scanline{
+    0%  { top:8px;  opacity:0; }
+    10% { opacity:1; }
+    90% { opacity:1; }
+    100%{ top:calc(100% - 10px); opacity:0; }
+  }
+  /* Pulse rings */
+  .scan-pulse{ position:absolute; inset:0; border-radius:4px;
+    border:1px solid rgba(201,169,97,0.18);
+    animation:scanpulse 2s ease-out infinite; }
+  .scan-pulse:nth-child(2){ animation-delay:.7s; }
+  @keyframes scanpulse{
+    0%  { transform:scale(1); opacity:.6; }
+    100%{ transform:scale(1.25); opacity:0; }
+  }
+
+  /* Steps list */
+  .verify-steps{ display:flex; flex-direction:column; gap:10px;
+    width:100%; max-width:320px; margin-bottom:32px; }
+  .v-step{ display:flex; align-items:center; gap:14px;
+    padding:10px 14px; border-radius:2px;
+    border:1px solid transparent;
+    transition:all .4s ease; opacity:.3; }
+  .v-step.active{
+    opacity:1; border-color:rgba(201,169,97,0.2);
+    background:rgba(201,169,97,0.04); }
+  .v-step.done{ opacity:.65; }
+  .v-step-icon{ width:26px; height:26px; border-radius:50%; flex-shrink:0;
+    border:1px solid rgba(201,169,97,0.3);
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; color:var(--text-mute); transition:all .4s; }
+  .v-step.active .v-step-icon{
+    border-color:var(--gold); color:var(--gold);
+    box-shadow:0 0 12px rgba(201,169,97,0.3); }
+  .v-step.done .v-step-icon{
+    background:rgba(201,169,97,0.12); border-color:var(--gold); color:var(--gold); }
+  .v-step-label{ font-size:11px; letter-spacing:2.5px;
+    text-transform:uppercase; color:var(--text-dim); transition:color .4s; }
+  .v-step.active .v-step-label{ color:var(--text); letter-spacing:3px; }
+  .v-step.done  .v-step-label{ color:var(--text-dim); }
+
+  /* Progress bar */
+  .scan-progress-wrap{ width:100%; max-width:320px;
+    height:1px; background:rgba(255,255,255,0.06);
+    border-radius:1px; overflow:hidden; }
+  .scan-progress-bar{ height:100%; width:0%; border-radius:1px;
+    background:linear-gradient(90deg, rgba(201,169,97,0.4), var(--gold));
+    box-shadow:0 0 8px rgba(201,169,97,0.5);
+    transition:width .6s cubic-bezier(.4,0,.2,1); }
+
   @keyframes spin{ to{ transform:rotate(360deg); } }
-  .loading-text{ font-size:11px; letter-spacing:5px; color:var(--text-dim); text-transform:uppercase; }
-  .loading-sub{ font-size:12px; color:var(--text-dim); margin-top:14px; letter-spacing:1px; opacity:.6; }
   .dots::after{ content:''; animation:dots 1.4s steps(4,end) infinite; }
   @keyframes dots{ 0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} }
 
@@ -537,12 +599,47 @@
   </div>
 
   <div class="loader-stage" id="loader">
-    <div class="spinner-box">
-      <div class="spinner-ring"></div>
-      <div class="spinner-ring"></div>
+
+    <!-- Scan frame with animated line -->
+    <div class="scan-frame">
+      <div class="scan-pulse"></div>
+      <div class="scan-pulse"></div>
+      <div class="scan-frame-corner tl"></div>
+      <div class="scan-frame-corner tr"></div>
+      <div class="scan-frame-corner bl"></div>
+      <div class="scan-frame-corner br"></div>
+      <div class="scan-frame-line"></div>
     </div>
-    <div class="loading-text">Проверка подлинности<span class="dots"></span></div>
-    <div class="loading-sub">Идёт сверка с базой</div>
+
+    <!-- Step checklist -->
+    <div class="verify-steps" id="verifySteps">
+      <div class="v-step" id="vs0">
+        <div class="v-step-icon">01</div>
+        <div class="v-step-label">Инициализация</div>
+      </div>
+      <div class="v-step" id="vs1">
+        <div class="v-step-icon">02</div>
+        <div class="v-step-label">Связь с базой Unimag</div>
+      </div>
+      <div class="v-step" id="vs2">
+        <div class="v-step-icon">03</div>
+        <div class="v-step-label">Верификация сигнатуры</div>
+      </div>
+      <div class="v-step" id="vs3">
+        <div class="v-step-icon">04</div>
+        <div class="v-step-label">Сверка с реестром</div>
+      </div>
+      <div class="v-step" id="vs4">
+        <div class="v-step-icon">05</div>
+        <div class="v-step-label">Подтверждение</div>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="scan-progress-wrap">
+      <div class="scan-progress-bar" id="scanProgressBar"></div>
+    </div>
+
   </div>
 
   <div class="result-stage" id="result">
@@ -727,62 +824,88 @@ function showResult() {
   }
 }
 
-// ---- QR Scan mode: animated check → random flacon result ----
+// ---- QR Scan mode: pro animated check → random flacon result ----
 function showScanForm() {
-  const loader      = document.getElementById('loader');
-  const result      = document.getElementById('result');
-  const loadingText = loader.querySelector('.loading-text');
-  const loadingSub  = loader.querySelector('.loading-sub');
+  const loader = document.getElementById('loader');
+  const result = document.getElementById('result');
+  const bar    = document.getElementById('scanProgressBar');
 
-  // Step-by-step animation messages
-  const steps = [
-    { delay: 0,    text: 'Сканирование QR-кода<span class="dots"></span>',   sub: 'Инициализация проверки…' },
-    { delay: 700,  text: 'Связь с базой Unimag<span class="dots"></span>',   sub: 'Отправка запроса на сервер…' },
-    { delay: 1500, text: 'Верификация сигнатуры<span class="dots"></span>',   sub: 'Проверка крипто-метки флакона…' },
-    { delay: 2400, text: 'Анализ данных<span class="dots"></span>',           sub: 'Идёт сверка с реестром…' },
-    { delay: 3200, text: 'Подтверждение<span class="dots"></span>',           sub: 'Финальная верификация…' },
+  // Steps config: [id, activateAt(ms), doneAt(ms), progress%]
+  const STEPS = [
+    { id:'vs0', at:  80, done: 700, pct:  8 },
+    { id:'vs1', at: 700, done:1500, pct: 30 },
+    { id:'vs2', at:1500, done:2400, pct: 55 },
+    { id:'vs3', at:2400, done:3200, pct: 78 },
+    { id:'vs4', at:3200, done:3900, pct: 96 },
   ];
 
-  steps.forEach(({ delay, text, sub }) => {
+  // Activate steps with checkmark icons
+  STEPS.forEach(({ id, at, done, pct }) => {
     setTimeout(() => {
-      if (loadingText) loadingText.innerHTML = text;
-      if (loadingSub)  loadingSub.textContent = sub;
-    }, delay);
+      const el = document.getElementById(id);
+      if (el) {
+        // Deactivate previous
+        STEPS.forEach(s => {
+          const prev = document.getElementById(s.id);
+          if (prev && prev !== el) prev.classList.remove('active');
+        });
+        el.classList.add('active');
+        if (bar) bar.style.width = pct + '%';
+      }
+    }, at);
+
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('active');
+        el.classList.add('done');
+        // Replace number with checkmark
+        const icon = el.querySelector('.v-step-icon');
+        if (icon) icon.innerHTML = '<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,8 6,12 14,4"/></svg>';
+      }
+    }, done);
   });
 
-  // After animation — pick random flacon and show result
+  // Final: complete bar and show result
   setTimeout(() => {
-    // Pick random flacon from DATABASE
-    const keys   = Object.keys(DATABASE);
+    if (bar) bar.style.width = '100%';
+  }, 3900);
+
+  setTimeout(() => {
+    // Pick random flacon
+    const keys    = Object.keys(DATABASE);
     const randKey = keys[Math.floor(Math.random() * keys.length)];
     const record  = DATABASE[randKey];
 
-    loader.classList.add('hidden');
-    result.classList.add('visible');
+    loader.style.opacity = '0';
+    loader.style.transform = 'scale(0.97)';
+    loader.style.transition = 'opacity .5s ease, transform .5s ease';
 
-    // Fill in result fields (reuse existing verify HTML)
-    document.getElementById('flaconNum').textContent = '№ ' + padNum(randKey);
-    document.getElementById('flaconOf').textContent  = 'из ' + (record.total || 500) + ' выпущенных';
-    document.getElementById('fName').textContent     = record.name   || '—';
-    document.getElementById('fNotes').textContent    = record.notes  || '—';
-    document.getElementById('fVol').textContent      = record.volume || '—';
-    document.getElementById('fDate').textContent     = record.date   || '—';
+    setTimeout(() => {
+      loader.classList.add('hidden');
+      result.classList.add('visible');
 
-    // Track check count in localStorage
-    const key = 'unimag_checks_' + randKey;
-    const n   = parseInt(localStorage.getItem(key) || '0', 10) + 1;
-    localStorage.setItem(key, n);
-    document.getElementById('fChecks').textContent =
-      n === 1 ? '1-я проверка' : n + '-я проверка';
+      document.getElementById('flaconNum').textContent = '№ ' + padNum(randKey);
+      document.getElementById('flaconOf').textContent  = 'из ' + (record.total || 500) + ' выпущенных';
+      document.getElementById('fName').textContent     = record.name   || '—';
+      document.getElementById('fNotes').textContent    = record.notes  || '—';
+      document.getElementById('fVol').textContent      = record.volume || '—';
+      document.getElementById('fDate').textContent     = record.date   || '—';
 
-    document.getElementById('resultLabel').textContent  = 'Проверка пройдена';
-    document.getElementById('resultTitle').textContent  = 'Вы держите в руках флакон №' + padNum(randKey);
-    document.getElementById('resultSub').textContent    =
-      'Этот экземпляр из лимитированной коллекции Unimag. Подлинность подтверждена.';
+      const key = 'unimag_checks_' + randKey;
+      const n   = parseInt(localStorage.getItem(key) || '0', 10) + 1;
+      localStorage.setItem(key, n);
+      document.getElementById('fChecks').textContent =
+        n === 1 ? '1-я проверка' : n + '-я проверка';
 
-    // Show info card
-    document.getElementById('infoCard').style.display = '';
-  }, 4000);
+      document.getElementById('resultLabel').textContent = 'Проверка пройдена';
+      document.getElementById('resultTitle').textContent =
+        'Вы держите в руках флакон №' + padNum(randKey);
+      document.getElementById('resultSub').textContent =
+        'Этот экземпляр из лимитированной коллекции Unimag. Подлинность подтверждена.';
+      document.getElementById('infoCard').style.display = '';
+    }, 500);
+  }, 4200);
 }
 
 // ---- Manual code check form ----
