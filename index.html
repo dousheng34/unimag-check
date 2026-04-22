@@ -213,6 +213,16 @@
     flex-wrap:wrap; gap:14px;
     font-size:11px; color:var(--text-mute); letter-spacing:1.5px; text-transform:uppercase; }
 
+  /* Footer always dark — keep text light even in light theme */
+  body.light-theme footer{ color:#f5f5f0; }
+  body.light-theme .foot-logo{ color:#f5f5f0; }
+  body.light-theme .foot-tag{ color:#8a8a85; }
+  body.light-theme .foot-about{ color:#8a8a85; }
+  body.light-theme .foot-h{ color:#c9a961; }
+  body.light-theme .foot-list a,
+  body.light-theme .foot-list span{ color:#8a8a85; }
+  body.light-theme .foot-bottom{ color:#5a5a55; border-top-color:rgba(255,255,255,0.06); }
+
   /* ============ VERIFY PAGE ============ */
   .verify-wrap{ position:fixed; inset:0; z-index:100;
     display:none; flex-direction:column;
