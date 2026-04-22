@@ -830,12 +830,8 @@ if (idKey) {
   document.body.classList.add('verify-mode');
   verify.style.display  = 'flex';
   landing.style.display = 'none';
-  // Hide splash immediately — not needed for direct ?id= links
-  const _sp = document.getElementById('tapSplash');
-  if (_sp) _sp.style.display = 'none';
-  document.getElementById('vBrand').style.display = '';
-  document.getElementById('loader').style.display = '';
-  setTimeout(showResult, 1800);
+  // Keep splash visible — tap unlocks AudioContext for iOS,
+  // then activateSplash() kicks off the full scan animation with sound.
 } else if (scanMode) {
   // Code-input stage removed from verify view — redirect to landing check form
   landing.style.display = 'block';
@@ -987,8 +983,8 @@ function _vib(pattern) {
 // ---- Splash activation (global, called from onclick) ----
 function activateSplash() {
   const splash    = document.getElementById('tapSplash');
-  const codeStage = document.getElementById('codeStage');
   const vBrand    = document.getElementById('vBrand');
+  const loader    = document.getElementById('loader');
   if (!splash || splash.dataset.activated) return;
   splash.dataset.activated = '1';
 
@@ -1000,9 +996,11 @@ function activateSplash() {
   setTimeout(() => {
     splash.style.display = 'none';
     if (vBrand) vBrand.style.display = '';
-    if (codeStage) {
-      codeStage.classList.add('visible');
-      setTimeout(() => { const inp = document.getElementById('codeInput'); if(inp) inp.focus(); }, 200);
+
+    // If we arrived via ?id=XXX — run the full scan animation directly.
+    if (idKey) {
+      if (loader) loader.style.display = '';
+      showScanForm(idKey);
     }
   }, 450);
 }
@@ -1010,14 +1008,10 @@ function activateSplash() {
 // ---- QR scan: run pro verification for a specific flacon ----
 function showScanForm(targetKey) {
   const loader    = document.getElementById('loader');
-  const codeStage = document.getElementById('codeStage');
   const result    = document.getElementById('result');
   const bar       = document.getElementById('scanProgressBar');
   const vBrand    = document.getElementById('vBrand');
 
-  // Hide code form, show loader
-  codeStage.classList.remove('visible');
-  setTimeout(() => { codeStage.style.display = 'none'; }, 400);
   if (vBrand) vBrand.style.display = '';
   loader.style.display  = '';
   loader.style.opacity  = '1';
