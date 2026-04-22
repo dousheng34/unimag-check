@@ -824,6 +824,52 @@ function showResult() {
   }
 }
 
+// ── Web Audio: verification sound system ──────────────────────────────────────
+const _ac = (function() {
+  try { return new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return null; }
+})();
+
+function _beep(freq, type, vol, dur, fadeStart) {
+  if (!_ac) return;
+  try {
+    const osc  = _ac.createOscillator();
+    const gain = _ac.createGain();
+    osc.connect(gain);
+    gain.connect(_ac.destination);
+    osc.type      = type || 'sine';
+    osc.frequency.setValueAtTime(freq, _ac.currentTime);
+    gain.gain.setValueAtTime(vol, _ac.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, _ac.currentTime + (fadeStart || dur));
+    osc.start(_ac.currentTime);
+    osc.stop(_ac.currentTime + dur);
+  } catch(e) {}
+}
+
+// Sounds per step event
+function _sndActivate() {
+  // Soft high-pitch tick — step becomes active
+  _beep(1320, 'sine', 0.04, 0.12, 0.09);
+}
+function _sndDone() {
+  // Double micro-tone — step completed (checkmark)
+  _beep(880,  'sine', 0.06, 0.18, 0.12);
+  setTimeout(() => _beep(1100, 'sine', 0.04, 0.14, 0.10), 70);
+}
+function _sndFinal() {
+  // Soft chime chord — all steps done
+  _beep(660,  'sine', 0.07, 0.4,  0.32);
+  setTimeout(() => _beep(880,  'sine', 0.05, 0.35, 0.28), 60);
+  setTimeout(() => _beep(1100, 'sine', 0.04, 0.3,  0.24), 140);
+  setTimeout(() => _beep(1320, 'sine', 0.03, 0.25, 0.20), 230);
+}
+function _unlockAudio() {
+  if (_ac && _ac.state === 'suspended') _ac.resume();
+  document.removeEventListener('touchstart', _unlockAudio);
+  document.removeEventListener('click',      _unlockAudio);
+}
+document.addEventListener('touchstart', _unlockAudio, { passive:true });
+document.addEventListener('click',      _unlockAudio);
+
 // ---- QR Scan mode: pro animated check → random flacon result ----
 function showScanForm() {
   const loader = document.getElementById('loader');
@@ -851,6 +897,7 @@ function showScanForm() {
         });
         el.classList.add('active');
         if (bar) bar.style.width = pct + '%';
+        _sndActivate();
       }
     }, at);
 
@@ -862,6 +909,7 @@ function showScanForm() {
         // Replace number with checkmark
         const icon = el.querySelector('.v-step-icon');
         if (icon) icon.innerHTML = '<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,8 6,12 14,4"/></svg>';
+        _sndDone();
       }
     }, done);
   });
@@ -869,6 +917,7 @@ function showScanForm() {
   // Final: complete bar and show result
   setTimeout(() => {
     if (bar) bar.style.width = '100%';
+    _sndFinal();
   }, 3900);
 
   setTimeout(() => {
