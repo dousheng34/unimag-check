@@ -16,6 +16,38 @@
     --text:#f5f5f0; --text-dim:#8a8a85; --text-mute:#5a5a55;
     --line:rgba(201,169,97,0.18); --line-soft:rgba(255,255,255,0.06);
   }
+  body.light-theme {
+    --bg:#f7f4ec; --bg-2:#ffffff; --gold:#a8863f; --gold-soft:#b8974d;
+    --gold-dim:rgba(168,134,63,0.5);
+    --text:#1a1a1a; --text-dim:#6a6a65; --text-mute:#9a9a95;
+    --line:rgba(168,134,63,0.25); --line-soft:rgba(0,0,0,0.08);
+  }
+  /* Theme toggle button in nav */
+  .theme-toggle{
+    width:42px; height:24px; border-radius:12px;
+    background:var(--line-soft); border:1px solid var(--line);
+    position:relative; cursor:pointer; padding:0;
+    transition:background .3s, border-color .3s; flex-shrink:0;
+  }
+  .nav-right{ display:flex; align-items:center; gap:18px; }
+  .theme-toggle::before{
+    content:''; position:absolute; top:2px; left:2px;
+    width:18px; height:18px; border-radius:50%;
+    background:var(--gold);
+    transition:transform .3s ease, background .3s;
+    box-shadow:0 1px 3px rgba(0,0,0,0.3);
+  }
+  body.light-theme .theme-toggle::before{ transform:translateX(18px); }
+  .theme-toggle svg{
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:11px; height:11px; pointer-events:none;
+    color:var(--text-mute); transition:opacity .3s;
+  }
+  .theme-toggle .ico-moon{ left:5px; opacity:1; }
+  .theme-toggle .ico-sun{  right:5px; opacity:0.4; }
+  body.light-theme .theme-toggle .ico-moon{ opacity:0.4; }
+  body.light-theme .theme-toggle .ico-sun{  opacity:1; }
+  @media (max-width:760px){ .nav-right{ gap:12px; } }
   html,body{ background:var(--bg); color:var(--text);
     font-family:'Inter',sans-serif; min-height:100vh;
     overflow-x:hidden; -webkit-font-smoothing:antialiased;
@@ -485,7 +517,18 @@
       <a href="./#about">О нас</a>
       <a href="./#faq">FAQ</a>
     </div>
-    <a href="./#contact" class="nav-cta">Контакты</a>
+    <div class="nav-right">
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Переключить тему" onclick="toggleTheme()">
+        <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>
+      </button>
+      <a href="./#contact" class="nav-cta">Контакты</a>
+    </div>
   </div>
 </nav>
 
@@ -834,6 +877,21 @@ const rawId     = (params.get('id') || '').trim();
 const scanMode  = params.get('scan') === '1';
 const checkMode = params.get('check') === '1';
 const idKey     = rawId ? String(parseInt(rawId, 10) || rawId) : '';
+
+// ---- Theme toggle (dark / light) ----
+(function initTheme(){
+  try {
+    const saved = localStorage.getItem('unimag_theme');
+    if (saved === 'light') document.body.classList.add('light-theme');
+  } catch(e) {}
+})();
+function toggleTheme(){
+  document.body.classList.toggle('light-theme');
+  try {
+    localStorage.setItem('unimag_theme',
+      document.body.classList.contains('light-theme') ? 'light' : 'dark');
+  } catch(e) {}
+}
 
 const landing   = document.getElementById('landing');
 const verify    = document.getElementById('verify');
