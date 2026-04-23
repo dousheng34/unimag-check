@@ -728,7 +728,7 @@
             <button type="submit">Проверить</button>
           </div>
           <div class="check-error" id="checkError"></div>
-          <div class="check-hint">Пример: 0001, 0250, 1000, 2500</div>
+          <div class="check-hint">Пример: 0001, 0250, 1000, 1250</div>
         </form>
       </div>
     </div>
@@ -919,10 +919,11 @@ if (idKey) {
   checkPage.style.display = 'block';
   initReveal();
 } else {
-  // No params — QR on flacon opens base URL → show check form directly
-  landing.style.display   = 'none';
+  // No params — show main landing page
+  landing.style.display   = 'block';
   verify.style.display    = 'none';
-  checkPage.style.display = 'block';
+  checkPage.style.display = 'none';
+  buildCollection();
   initReveal();
 }
 
