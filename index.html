@@ -920,9 +920,10 @@ if (idKey) {
   checkPage.style.display = 'block';
   initReveal();
 } else {
-  landing.style.display = 'block';
-  verify.style.display  = 'none';
-  buildCollection();
+  // No params — QR on flacon opens base URL → show check form directly
+  landing.style.display   = 'none';
+  verify.style.display    = 'none';
+  checkPage.style.display = 'block';
   initReveal();
 }
 
