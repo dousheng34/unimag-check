@@ -213,6 +213,13 @@
     flex-wrap:wrap; gap:14px;
     font-size:11px; color:var(--text-mute); letter-spacing:1.5px; text-transform:uppercase; }
 
+  /* Input white in light theme */
+  body.light-theme .check-form input{
+    background:#ffffff !important; color:#1a1a1a; border-color:rgba(168,134,63,0.35);
+  }
+  body.light-theme .check-form input::placeholder{ color:#9a9a95; }
+  body.light-theme .check-form input:focus{ background:#ffffff !important; border-color:var(--gold); }
+
   /* Footer always dark — keep text light even in light theme */
   body.light-theme footer{ color:#f5f5f0; }
   body.light-theme .foot-logo{ color:#f5f5f0; }
@@ -709,16 +716,10 @@
         <div class="check-card-label">Проверка подлинности</div>
         <h3>Введите номер флакона</h3>
         <p class="desc">
-          Отсканируйте QR-код ниже камерой смартфона, или введите номер
-          флакона вручную. Номер указан на сертификате и на самом флаконе.
+          Введите номер флакона, указанный на сертификате или на самом флаконе.
         </p>
 
-        <div class="qr-box">
-          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAXIAAAFyAQAAAADAX2ykAAAC4UlEQVR4nO2cQW7jOBBFXw0FZEkBc4AcRbpBHymYm0lHyQEaIJcGaPxekLTlDGbSjXbcJlBcBJL4Fh8okFX1ScfEr4z9r1/CwXnnnf9SPlsbK2eDPGFrnmA3M/YZ+vz0GD3O35FHSkGSJBZJ2gj1D0sKklJoE0pB2p5Nv/M/w7fFmc1YEthbAm3xZLZCnWhPz6nf+Z/lbQW0xYLZHMQ+/1k9zt+TD9JGW87Su5m2WP6gHud/l58A6E3S2erTsgH7tzLZkgCigPwIPc7fnz/X8hgIshWoRfTb+4ugV9Jm86P0OH8/fmqLE4B8tsPUPmPsc+BogTybfuc/5fPUOtw1SuyvJ4N4Mm1RquV0644fpMf5O/JIKmgDWterUr/V2S1KEAu1Hfb+dzCe7mAUIN6EVqlHXykIojy+w/ETrWoOYl9fZMTviDxjAD0fXxLzs+l3/nM+yNY8YW/pbNpqEX21JgvsM2jL7j+Px9/kWoKoJkcsNDs6NmO6TTybfuc/GT2+4dIFtSCz3CRmz7+j8vlFvX5uo7mS8WT6Z4ZqclQn6wn1O/9/o5bJ7UDwsknXSrq1RvXM0M8HR+Tb/rykD5EO/STY+9+h+d7hXoOscnE6jmf+nn+H5Ov5kRGTgDJBnoGY0G4gONcW+UF6nL8vX9NsLa1aQ3RNvdLBvfT8OyJ/MR/Lof+FWlBBfV3k+XdQvt+vS9eotut23doovfDy/Dsgfzw8+BDkDWhVVZTXV0PzSwJbOVuzs+LJWkCzma15om3XT6rf+f8aOozUP/ZbV4fl7Pl3SJ5jVHsTfHMS3J1o359H5G9+v3BxrZTokT68+vodj+/+BqG0p/jd1F4F5LlaG9rn8AA9zn85H8T+WrCVs5m9luMWPoJ+5w9j+teXPBWrF3Py32L/FmTEMtmiR+hx/iv43hX1S3at4T2ZvSVgeZ9u+a/W4/y9eD52RUu3K/vvQ+Fqcnh9NRpv/v8ZnHd+WP4HaS06weyobpQAAAAASUVORK5CYII=" alt="UNIMAG QR — проверка подлинности" loading="lazy">
-          <div class="qr-caption">UNIMAG · Verify</div>
-        </div>
 
-        <div class="qr-or">или введите номер вручную</div>
 
         <form class="check-form" id="checkForm" onsubmit="return runCheck(event)">
           <div class="row">
@@ -892,7 +893,7 @@ const idKey     = rawId ? String(parseInt(rawId, 10) || rawId) : '';
 (function initTheme(){
   try {
     const saved = localStorage.getItem('unimag_theme');
-    if (saved === 'light') document.body.classList.add('light-theme');
+    if (!saved || saved === 'light') document.body.classList.add('light-theme');
   } catch(e) {}
 })();
 function toggleTheme(){
@@ -979,10 +980,17 @@ function showResult() {
   if (record) {
     document.getElementById('flaconNum').textContent = '№ ' + padNum(idKey);
     document.getElementById('flaconOf').textContent  = 'из ' + (record.total || 500) + ' выпущенных';
-    document.getElementById('fName').textContent     = record.name   || '—';
-    document.getElementById('fNotes').textContent    = record.notes  || '—';
-    document.getElementById('fVol').textContent      = record.volume || '—';
-    document.getElementById('fDate').textContent     = record.date   || '—';
+    // Код 0-дан басталса — женский, 1-ден — мужской
+    const codeStr = String(idKey).padStart(4, '0');
+    const isWomen = codeStr.startsWith('0');
+    const prodName  = isWomen ? 'Pheromone for women' : 'Pheromone for men';
+    const prodNotes = isWomen ? 'Древесный, пудровый, цветочный' : 'Фужерный, свежий пряный, цитрусовый';
+    const prodVol   = '50 мл';
+    const prodDate  = isWomen ? '20.04.2026' : '22.04.2026';
+    document.getElementById('fName').textContent     = prodName;
+    document.getElementById('fNotes').textContent    = prodNotes;
+    document.getElementById('fVol').textContent      = prodVol;
+    document.getElementById('fDate').textContent     = prodDate;
 
     const key = 'unimag_checks_' + idKey;
     const n   = parseInt(localStorage.getItem(key) || '0', 10) + 1;
