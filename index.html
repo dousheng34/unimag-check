@@ -919,12 +919,8 @@ if (idKey) {
   checkPage.style.display = 'block';
   initReveal();
 } else {
-  // No params — show main landing page
-  landing.style.display   = 'block';
-  verify.style.display    = 'none';
-  checkPage.style.display = 'none';
-  buildCollection();
-  initReveal();
+  // No params — redirect to check page
+  window.location.replace('./?check=1');
 }
 
 function padNum(n, len = 4) { return String(n).padStart(len, '0'); }
